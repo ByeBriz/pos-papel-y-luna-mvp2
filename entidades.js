@@ -1,131 +1,151 @@
-// productos.js
-const tablaProductos = document.getElementById('tabla-productos');
-const modalProducto = document.getElementById('modal-producto');
-const btnGuardarProducto = document.getElementById('btn-guardar-producto');
+/// entidades.js
+const modalEntidad = document.getElementById('modal-entidad');
+const btnGuardarEntidad = document.getElementById('btn-guardar-entidad');
 
-window.renderizarTablaProductos = function() {
-    tablaProductos.innerHTML = '';
-    productos.forEach(prod => {
+// Renderiza las tres tablas de entidades y llena los selectores (dropdowns) en los formularios
+window.renderizarEntidades = function() {
+    renderizarTabla('categorias', categorias, ['id', 'nombre'], 'tabla-categorias');
+    renderizarTabla('clientes', clientes, ['id', 'nombre', 'telefono', 'correo'], 'tabla-clientes');
+    renderizarTabla('proveedores', proveedores, ['id', 'nombre', 'telefono', 'correo'], 'tabla-proveedores');
+    
+    llenarSelect('prod-categoria', categorias);
+    llenarSelect('select-cliente-venta', clientes, "Seleccione un cliente (Opcional)");
+    llenarSelect('select-proveedor-compra', proveedores);
+}
+
+function renderizarTabla(tipo, datos, columnas, idTabla) {
+    const tbody = document.getElementById(idTabla);
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    datos.forEach(item => {
         const tr = document.createElement('tr');
-        const txtStock = (prod.seguimientoInventario === 'true' || prod.seguimientoInventario === true) ? prod.stock : 'N/A';
-        const categoriaObj = categorias.find(c => c.id === prod.categoriaId);
-        const nombreCat = categoriaObj ? categoriaObj.nombre : 'Sin categoría';
-
-        tr.innerHTML = `
-            <td>${prod.codigo}</td>
-            <td>${prod.nombre}</td>
-            <td>${nombreCat}</td>
-            <td>${formatearMoneda(prod.precio)}</td>
-            <td>${formatearMoneda(prod.costo)}</td>
-            <td>${txtStock}</td>
-            <td>
-                <button class="btn-icon btn-editar" data-id="${prod.id}" title="Editar">✏️</button>
-                <button class="btn-icon btn-eliminar" data-id="${prod.id}" title="Eliminar">🗑️</button>
-            </td>
-        `;
-        tablaProductos.appendChild(tr);
+        let html = '';
+        columnas.forEach(col => {
+            html += `<td>${item[col] || ''}</td>`;
+        });
+        html += `<td>
+                    <button class="btn-icon btn-editar-entidad" data-tipo="${tipo}" data-id="${item.id}" title="Editar">✏️</button>
+                    <button class="btn-icon btn-eliminar-entidad" data-tipo="${tipo}" data-id="${item.id}" title="Eliminar">🗑️</button>
+                 </td>`;
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
     });
 }
 
-tablaProductos.addEventListener('click', (evento) => {
-    const btn = evento.target.closest('.btn-icon');
-    if (!btn) return;
-    const id = btn.getAttribute('data-id');
-    if (btn.classList.contains('btn-editar')) abrirModalProducto(id);
-    else if (btn.classList.contains('btn-eliminar')) eliminarProducto(id);
+function llenarSelect(idSelect, datos, opcionPorDefecto = "Seleccione una opción") {
+    const select = document.getElementById(idSelect);
+    if(!select) return;
+    select.innerHTML = `<option value="">${opcionPorDefecto}</option>`;
+    datos.forEach(item => {
+        select.innerHTML += `<option value="${item.id}">${item.nombre}</option>`;
+    });
+}
+
+// Delegación de eventos para abrir modales o eliminar
+document.getElementById('vista-entidades').addEventListener('click', (evento) => {
+    const btnNueva = evento.target.closest('.btn-nueva-entidad');
+    const btnEditar = evento.target.closest('.btn-editar-entidad');
+    const btnEliminar = evento.target.closest('.btn-eliminar-entidad');
+
+    if (btnNueva) abrirModalEntidad(btnNueva.getAttribute('data-tipo'));
+    if (btnEditar) abrirModalEntidad(btnEditar.getAttribute('data-tipo'), btnEditar.getAttribute('data-id'));
+    if (btnEliminar) eliminarEntidad(btnEliminar.getAttribute('data-tipo'), btnEliminar.getAttribute('data-id'));
 });
 
-function abrirModalProducto(id = null) {
-    document.getElementById('prod-id').value = id || '';
+function abrirModalEntidad(tipo, id = null) {
+    document.getElementById('entidad-tipo').value = tipo;
+    document.getElementById('entidad-id').value = id || '';
+    document.getElementById('titulo-modal-entidad').innerText = id ? `Editar ${tipo}` : `Nuevo ${tipo}`;
+    
+    // Mostrar u ocultar campos extras (clientes y proveedores tienen teléfono/correo)
+    const camposExtra = document.querySelectorAll('.extra-entidad');
+    camposExtra.forEach(c => c.style.display = (tipo === 'categorias') ? 'none' : 'block');
+
     if (id) {
-        document.getElementById('titulo-modal-producto').innerText = "Editar Producto";
-        const prod = productos.find(p => p.id === id);
-        document.getElementById('prod-codigo').value = prod.codigo;
-        document.getElementById('prod-nombre').value = prod.nombre;
-        document.getElementById('prod-categoria').value = prod.categoriaId || '';
-        document.getElementById('prod-costo').value = prod.costo;
-        document.getElementById('prod-precio').value = prod.precio;
-        document.getElementById('prod-seguimiento').value = String(prod.seguimientoInventario);
-        document.getElementById('prod-stock').value = prod.stock || 0;
+        let coleccion = tipo === 'categorias' ? categorias : (tipo === 'clientes' ? clientes : proveedores);
+        const item = coleccion.find(i => i.id === id);
+        document.getElementById('entidad-nombre').value = item.nombre;
+        document.getElementById('entidad-telefono').value = item.telefono || '';
+        document.getElementById('entidad-correo').value = item.correo || '';
     } else {
-        document.getElementById('titulo-modal-producto').innerText = "Nuevo Producto";
-        document.getElementById('prod-codigo').value = "PROD-" + Date.now().toString().slice(-4);
-        document.getElementById('prod-nombre').value = '';
-        document.getElementById('prod-categoria').value = '';
-        document.getElementById('prod-costo').value = '';
-        document.getElementById('prod-precio').value = '';
-        document.getElementById('prod-seguimiento').value = 'true';
-        document.getElementById('prod-stock').value = 0;
+        document.getElementById('entidad-nombre').value = '';
+        document.getElementById('entidad-telefono').value = '';
+        document.getElementById('entidad-correo').value = '';
     }
-    alternarCampoStock();
-    btnGuardarProducto.disabled = false;
-    modalProducto.style.display = 'flex';
+    
+    btnGuardarEntidad.disabled = false;
+    modalEntidad.style.display = 'flex';
 }
 
-function alternarCampoStock() {
-    const seguimiento = document.getElementById('prod-seguimiento').value === 'true';
-    document.getElementById('prod-stock').disabled = !seguimiento;
-}
-document.getElementById('prod-seguimiento').addEventListener('change', alternarCampoStock);
-document.getElementById('btn-nuevo-producto').addEventListener('click', () => abrirModalProducto());
-document.getElementById('btn-cancelar-producto').addEventListener('click', () => modalProducto.style.display = 'none');
+document.getElementById('btn-cancelar-entidad').addEventListener('click', () => modalEntidad.style.display = 'none');
 
-btnGuardarProducto.addEventListener('click', async () => {
-    const id = document.getElementById('prod-id').value;
-    const codigo = document.getElementById('prod-codigo').value.trim();
-    const nombre = document.getElementById('prod-nombre').value.trim();
-    const categoriaId = document.getElementById('prod-categoria').value;
-    const costo = parseFloat(document.getElementById('prod-costo').value);
-    const precio = parseFloat(document.getElementById('prod-precio').value);
-    const seguimientoInventario = document.getElementById('prod-seguimiento').value === 'true';
-    const stock = seguimientoInventario ? parseInt(document.getElementById('prod-stock').value) : 0;
+btnGuardarEntidad.addEventListener('click', async () => {
+    const tipo = document.getElementById('entidad-tipo').value;
+    const id = document.getElementById('entidad-id').value;
+    const nombre = document.getElementById('entidad-nombre').value.trim();
+    const telefono = document.getElementById('entidad-telefono').value.trim();
+    const correo = document.getElementById('entidad-correo').value.trim();
 
-    if (!nombre || !codigo || !categoriaId) return alert("Nombre, Código y Categoría son obligatorios.");
-    if (isNaN(costo) || costo < 0 || isNaN(precio) || precio < 0) return alert("Los valores numéricos no pueden ser negativos.");
+    if (!nombre) return alert("El nombre es obligatorio.");
 
-    btnGuardarProducto.disabled = true;
-    btnGuardarProducto.innerText = "Sincronizando...";
+    btnGuardarEntidad.disabled = true;
+    btnGuardarEntidad.innerText = "Guardando...";
 
-    const datos = { codigo, nombre, categoriaId, costo, precio, seguimientoInventario, stock };
+    const datos = { nombre };
+    if (tipo !== 'categorias') {
+        datos.telefono = telefono;
+        datos.correo = correo;
+    }
 
     try {
         if (id) {
             datos.id = id;
-            await apiPost("productos", "update", datos);
-            const index = productos.findIndex(p => p.id === id);
-            productos[index] = { ...productos[index], ...datos };
+            await apiPost(tipo, "update", datos);
+            let coleccion = tipo === 'categorias' ? categorias : (tipo === 'clientes' ? clientes : proveedores);
+            const index = coleccion.findIndex(i => i.id === id);
+            coleccion[index] = { ...coleccion[index], ...datos };
         } else {
             datos.id = generarId();
-            await apiPost("productos", "create", datos);
-            productos.push(datos);
+            await apiPost(tipo, "create", datos);
+            if(tipo === 'categorias') categorias.push(datos);
+            if(tipo === 'clientes') clientes.push(datos);
+            if(tipo === 'proveedores') proveedores.push(datos);
         }
-
-        modalProducto.style.display = 'none';
-        window.renderizarTablaProductos();
-        if(typeof window.renderizarCatalogo === 'function') window.renderizarCatalogo(productos);
+        modalEntidad.style.display = 'none';
+        window.renderizarEntidades();
     } catch (error) {
-        alert("Error al sincronizar producto en Sheets.");
+        alert("Error al guardar en Google Sheets.");
     } finally {
-        btnGuardarProducto.disabled = false;
-        btnGuardarProducto.innerText = "Guardar";
+        btnGuardarEntidad.disabled = false;
+        btnGuardarEntidad.innerText = "Guardar";
     }
 });
 
-async function eliminarProducto(id) {
-    if (comprasRegistradas.some(c => c.items.some(i => i.productoId === id))) {
-        return alert("No puedes eliminar un producto que ya tiene historial de compras.");
+async function eliminarEntidad(tipo, id) {
+    // Validaciones estrictas del MVP 2
+    if (tipo === 'categorias' && productos.some(p => p.categoriaId === id)) {
+        return alert("No puedes eliminar esta categoría porque hay productos usándola.");
     }
-    if (!confirm("¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer en la nube.")) return;
+    if (tipo === 'clientes' && ventasCerradas.some(v => v.clienteId === id)) {
+        return alert("No puedes eliminar este cliente porque tiene ventas asociadas.");
+    }
+    if (tipo === 'proveedores' && comprasRegistradas.some(c => c.proveedorId === id)) {
+        return alert("No puedes eliminar este proveedor porque tiene compras asociadas.");
+    }
+
+    if (!confirm("¿Seguro que deseas eliminar este registro?")) return;
 
     try {
         document.getElementById('cargando-overlay').style.display = 'flex';
-        await apiPost("productos", "delete", { id });
-        productos = productos.filter(p => p.id !== id);
+        await apiPost(tipo, "delete", { id });
         
-        window.renderizarTablaProductos();
-        if(typeof window.renderizarCatalogo === 'function') window.renderizarCatalogo(productos);
+        if (tipo === 'categorias') categorias = categorias.filter(c => c.id !== id);
+        if (tipo === 'clientes') clientes = clientes.filter(c => c.id !== id);
+        if (tipo === 'proveedores') proveedores = proveedores.filter(p => p.id !== id);
+        
+        window.renderizarEntidades();
     } catch (error) {
-        alert("Error al eliminar en Sheets.");
+        alert("Error al eliminar en Google Sheets.");
     } finally {
         document.getElementById('cargando-overlay').style.display = 'none';
     }
