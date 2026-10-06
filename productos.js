@@ -36,7 +36,6 @@ tablaProductos.addEventListener('click', (evento) => {
 });
 
 function abrirModalProducto(id = null) {
-    // Estas líneas llenan el menú desplegable con tus datos de Sheets
     const selectCategoria = document.getElementById('prod-categoria');
     selectCategoria.innerHTML = '<option value="">Seleccione una categoría...</option>' + 
         categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
@@ -91,7 +90,7 @@ btnGuardarProducto.addEventListener('click', async () => {
     btnGuardarProducto.disabled = true;
     btnGuardarProducto.innerText = "Sincronizando...";
 
-    const datos = { codigo, nombre, categoriaId, costo, precio, seguimientoInventario, stock };
+    const datos = { codigo, nombre, categoriaId, costo, precio, seguimientoInventario, stock }; 
 
     try {
         if (id) {
