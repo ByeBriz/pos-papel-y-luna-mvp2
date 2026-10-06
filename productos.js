@@ -36,6 +36,11 @@ tablaProductos.addEventListener('click', (evento) => {
 });
 
 function abrirModalProducto(id = null) {
+    // Estas líneas llenan el menú desplegable con tus datos de Sheets
+    const selectCategoria = document.getElementById('prod-categoria');
+    selectCategoria.innerHTML = '<option value="">Seleccione una categoría...</option>' + 
+        categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+
     document.getElementById('prod-id').value = id || '';
     if (id) {
         document.getElementById('titulo-modal-producto').innerText = "Editar Producto";
