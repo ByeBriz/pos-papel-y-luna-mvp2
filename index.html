@@ -206,4 +206,33 @@
                 <div class="grupo-input">
                     <label>Método de Pago</label>
                     <select id="metodo-pago">
-                        <option value="Efect
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Nequi">Nequi / Transferencia</option>
+                        <option value="Debe">Fiado (Debe)</option>
+                    </select>
+                </div>
+                <div id="grupo-efectivo" class="grupo-input">
+                    <label>Efectivo Recibido</label>
+                    <input type="number" id="valor-recibido" placeholder="¿Con cuánto paga?">
+                    <p style="margin-top: 10px;">Cambio: <span id="valor-cambio" style="font-weight: bold;">$0</span></p>
+                </div>
+            </div>
+            <div class="acciones-modal">
+                <button class="btn btn-rojo" id="btn-cancelar-pago">Cancelar</button>
+                <button class="btn btn-verde" id="btn-confirmar-venta">Confirmar Venta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts en orden de dependencia -->
+    <script src="api.js"></script>
+    <script src="datos.js"></script>
+    <script src="entidades.js"></script>
+    <script src="productos.js"></script>
+    <script src="ventas.js"></script>
+    <script src="compras.js"></script>
+    <script src="historial.js"></script>
+    <script src="navegacion.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
