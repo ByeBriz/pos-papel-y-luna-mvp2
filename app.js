@@ -1,4 +1,9 @@
-// --- 1. CONFIGURACIÓN Y DATOS INICIALES ---
+window.llenarSelect = function(idSelect, arreglo, textoDefault = "Seleccione...") {
+    const select = document.getElementById(idSelect);
+    if (!select) return;
+    select.innerHTML = `<option value="">${textoDefault}</option>` + 
+        arreglo.map(item => `<option value="${item.id}">${item.nombre}</option>`).join('');
+};
 
 const productosPorDefecto = [
     { id: 1, codigo: "PAP-001", nombre: "Cuaderno Argollado", categoria: "Papelería", precio: 15000, costo: 9000, seguimiento: true, stock: 50, imagen: "Imagenes/cuadernoc.jpeg" },
@@ -26,7 +31,6 @@ let totalVentaActual = 0;
 
 // --- 2. REFERENCIAS DOM ---
 const cuadriculaProductos = document.getElementById('product-grid');
-const tablaProductos = document.getElementById('tabla-productos');
 const tablaHistorial = document.getElementById('tabla-historial');
 const modalProducto = document.getElementById('modal-producto');
 
