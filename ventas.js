@@ -1,7 +1,7 @@
 // ventas.js
 const cuadriculaProductos = document.getElementById('cuadricula-productos');
 const contenedorItemsFactura = document.getElementById('items-factura');
-let idVentaAbiertaActual = null; 
+let idVentaAbiertaActual = null; // Para saber si estamos editando una venta guardada
 
 window.renderizarCatalogo = function(catalogoAMostrar) {
     cuadriculaProductos.innerHTML = '';
@@ -11,28 +11,24 @@ window.renderizarCatalogo = function(catalogoAMostrar) {
         const txtStock = (producto.seguimientoInventario === 'true' || producto.seguimientoInventario === true) ? `Stock: ${producto.stock}` : 'Sin seg. inventario';
         const cat = categorias.find(c => c.id === producto.categoriaId);
         
-        const rutaImagen = producto.imagen ? producto.imagen : 'Imagenes/placeholder.png';
-        
         tarjeta.innerHTML = `
-            <img src="${rutaImagen}" alt="${producto.nombre}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px 8px 0 0; border-bottom: 1px solid var(--border-color);">
-            <div style="padding: 10px;">
-                <div class="texto-info">
-                    <p class="categoria-producto">${cat ? cat.nombre : 'Sin Cat'}</p>
-                    <h3 class="nombre-producto">${producto.nombre}</h3>
-                </div>
-                <p class="precio-producto">${formatearMoneda(producto.precio)}</p>
-                <p style="font-size:11px; text-align:center; color:var(--text-muted); margin-bottom:10px;">${txtStock}</p>
-                <div class="controles-agregar">
-                    <button class="btn btn-naranja" onclick="abrirModalProducto('${producto.id}')" title="Editar en caliente">✏️</button>
-                    <input type="number" id="cant-${producto.id}" class="entrada-cantidad" value="1" min="1">
-                    <button class="btn btn-verde btn-agregar" data-id="${producto.id}">Add</button>
-                </div>
+            <div class="texto-info">
+                <p class="categoria-producto">${cat ? cat.nombre : 'Sin Cat'}</p>
+                <h3 class="nombre-producto">${producto.nombre}</h3>
+            </div>
+            <p class="precio-producto">${formatearMoneda(producto.precio)}</p>
+            <p style="font-size:11px; text-align:center; color:var(--text-muted); margin-bottom:10px;">${txtStock}</p>
+            <div class="controles-agregar">
+                <button class="btn btn-naranja" onclick="abrirModalProducto('${producto.id}')" title="Editar en caliente">✏️</button>
+                <input type="number" id="cant-${producto.id}" class="entrada-cantidad" value="1" min="1">
+                <button class="btn btn-verde btn-agregar" data-id="${producto.id}">Add</button>
             </div>
         `;
         cuadriculaProductos.appendChild(tarjeta);
     });
 }
 
+// Lógica de carrito
 cuadriculaProductos.addEventListener('click', (evento) => {
     if (evento.target.classList.contains('btn-agregar')) agregarAFactura(evento.target.getAttribute('data-id'));
 });
@@ -49,6 +45,7 @@ function agregarAFactura(idProducto) {
     const producto = productos.find(p => p.id === idProducto);
     const indice = carritoFactura.findIndex(item => item.productoId === idProducto);
     
+    // Simulación de control de stock temporal en carrito
     let cantidadTotalDeseada = cantidad;
     if(indice > -1) cantidadTotalDeseada += carritoFactura[indice].cantidad;
 
@@ -98,6 +95,7 @@ function actualizarInterfazFactura() {
     document.getElementById('total-val').innerText = formatearMoneda(totalVentaActual);
 }
 
+// Guardar Venta Abierta
 document.getElementById('btn-guardar-abierta').addEventListener('click', async () => {
     if (carritoFactura.length === 0) return;
     document.getElementById('cargando-overlay').style.display = 'flex';
@@ -135,6 +133,7 @@ document.getElementById('btn-guardar-abierta').addEventListener('click', async (
     finally { document.getElementById('cargando-overlay').style.display = 'none'; }
 });
 
+// Proceso de Cobro (Cerrar venta)
 document.getElementById('btn-cobrar').addEventListener('click', () => {
     if (carritoFactura.length === 0) return;
     document.getElementById('modal-total-pagar').innerText = formatearMoneda(totalVentaActual);
@@ -162,6 +161,7 @@ document.getElementById('btn-confirmar-venta').addEventListener('click', async (
     if (metodo === 'Efectivo' && valRecibido < totalVentaActual) return alert("Valor recibido insuficiente.");
     if (metodo === 'Debe' && !clienteId) return alert("Debe seleccionar un Cliente obligatorio para cobros fiados (Debe).");
 
+    // VALIDACIÓN FINAL DE STOCK ANTES DE CERRAR
     for (let item of carritoFactura) {
         const p = productos.find(prod => prod.id === item.productoId);
         if ((p.seguimientoInventario === 'true' || p.seguimientoInventario === true) && p.stock < item.cantidad) {
@@ -187,6 +187,7 @@ document.getElementById('btn-confirmar-venta').addEventListener('click', async (
     };
 
     try {
+        // 1. Descontar Inventario en Sheets
         for (let item of carritoFactura) {
             let pIndex = productos.findIndex(prod => prod.id === item.productoId);
             let prod = productos[pIndex];
@@ -196,6 +197,7 @@ document.getElementById('btn-confirmar-venta').addEventListener('click', async (
             }
         }
 
+        // 2. Guardar/Actualizar la venta a estado "cerrada"
         if(idVentaAbiertaActual) {
             await apiPost("ventas", "update", ventaFinal);
             const idx = ventasCerradas.findIndex(v => v.id === idVentaAbiertaActual);
@@ -228,11 +230,12 @@ function limpiarCaja() {
     actualizarInterfazFactura();
 }
 
+// Permitir inyectar una venta abierta al carrito desde el historial
 window.retomarVentaAbierta = function(idVenta) {
     const venta = ventasCerradas.find(v => v.id === idVenta);
     if(!venta || venta.estado !== 'abierta') return;
     carritoFactura = [...venta.items];
     idVentaAbiertaActual = venta.id;
     actualizarInterfazFactura();
-    document.querySelector('[data-vista="ventas"]').click(); 
+    document.querySelector('[data-vista="ventas"]').click(); // Navegar a ventas
 }
