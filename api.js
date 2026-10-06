@@ -1,5 +1,5 @@
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwWs1v958iL4q_R9YrcQ7a3oD3i9rnDhUNx1odJx5-3U-o2i6-FhdF8z2r-0pK5IB_b6Q/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbzZIFjHjvspZEEUEQcmBp4DZV4e0kwpf_5M_yTZzavZ4z-PA4Iuf253R4ZOjJ6fgPFUlQ/exec"; 
 async function apiGet(resource) {
     try {
         const res = await fetch(`${API_URL}?resource=${resource}`);

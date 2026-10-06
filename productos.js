@@ -1,4 +1,4 @@
-// productos.js
+
 const tablaProductos = document.getElementById('tabla-productos');
 const modalProducto = document.getElementById('modal-producto');
 const btnGuardarProducto = document.getElementById('btn-guardar-producto');
