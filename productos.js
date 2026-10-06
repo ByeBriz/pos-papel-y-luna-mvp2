@@ -47,7 +47,6 @@ function abrirModalProducto(id = null) {
         document.getElementById('prod-precio').value = prod.precio;
         document.getElementById('prod-seguimiento').value = String(prod.seguimientoInventario);
         document.getElementById('prod-stock').value = prod.stock || 0;
-        document.getElementById('prod-imagen').value = prod.imagen || ''; 
     } else {
         document.getElementById('titulo-modal-producto').innerText = "Nuevo Producto";
         document.getElementById('prod-codigo').value = "PROD-" + Date.now().toString().slice(-4);
@@ -57,7 +56,6 @@ function abrirModalProducto(id = null) {
         document.getElementById('prod-precio').value = '';
         document.getElementById('prod-seguimiento').value = 'true';
         document.getElementById('prod-stock').value = 0;
-        document.getElementById('prod-imagen').value = ''; 
     }
     alternarCampoStock();
     btnGuardarProducto.disabled = false;
@@ -81,7 +79,6 @@ btnGuardarProducto.addEventListener('click', async () => {
     const precio = parseFloat(document.getElementById('prod-precio').value);
     const seguimientoInventario = document.getElementById('prod-seguimiento').value === 'true';
     const stock = seguimientoInventario ? parseInt(document.getElementById('prod-stock').value) : 0;
-    const imagen = document.getElementById('prod-imagen').value.trim(); 
 
     if (!nombre || !codigo || !categoriaId) return alert("Nombre, Código y Categoría son obligatorios.");
     if (isNaN(costo) || costo < 0 || isNaN(precio) || precio < 0) return alert("Los valores numéricos no pueden ser negativos.");
@@ -89,7 +86,7 @@ btnGuardarProducto.addEventListener('click', async () => {
     btnGuardarProducto.disabled = true;
     btnGuardarProducto.innerText = "Sincronizando...";
 
-    const datos = { codigo, nombre, categoriaId, costo, precio, seguimientoInventario, stock, imagen }; 
+    const datos = { codigo, nombre, categoriaId, costo, precio, seguimientoInventario, stock }; 
 
     try {
         if (id) {
