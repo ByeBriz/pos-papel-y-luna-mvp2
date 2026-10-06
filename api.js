@@ -1,5 +1,5 @@
 
-const API_URL = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbyKcIG_ptEgGWDkGbHa0zXjBNMKDQkXjbYL4rnrtlG7z6vehaBJe9-qYoonQTLSt-OC3A/exec"; 
 async function apiGet(resource) {
     try {
         const res = await fetch(`${API_URL}?resource=${resource}`);
